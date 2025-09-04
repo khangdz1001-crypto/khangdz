@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Trang Web Nút Link</title>
+  <style>
+    body {
+      font-family: "Segoe UI", sans-serif;
+      text-align: center;
+      margin: 0;
+      padding: 40px;
+      background: linear-gradient(45deg, #ff9a9e, #fad0c4, #a1c4fd, #c2e9fb, #fbc2eb, #a6c1ee);
+      background-size: 600% 600%;
+      animation: gradientBG 12s ease infinite;
+      min-height: 100vh;
+      color: #fff;
+    }
+
+    @keyframes gradientBG {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    h1 {
+      margin-bottom: 25px;
+      font-size: 2.5em;
+      text-shadow: 0 0 10px #ff0080, 0 0 20px #ff8c00, 0 0 30px #ff0080;
+    }
+
+    .btn {
+      display: inline-block;
+      margin: 10px;
+      padding: 14px 28px;
+      font-size: 18px;
+      font-weight: bold;
+      color: white;
+      background: linear-gradient(135deg, #ff416c, #ff4b2b, #1e90ff, #00c9ff, #92fe9d);
+      background-size: 300% 300%;
+      border-radius: 40px;
+      text-decoration: none;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.3s, background-position 1s;
+      box-shadow: 0px 4px 15px rgba(0,0,0,0.4);
+      position: relative;
+    }
+    .btn:hover {
+      transform: scale(1.08);
+      box-shadow: 0px 8px 25px rgba(0,0,0,0.6);
+      background-position: right center;
+    }
+
+    .delete-btn {
+      position: absolute;
+      top: -8px;
+      right: -8px;
+      background: red;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 22px;
+      height: 22px;
+      font-size: 12px;
+      cursor: pointer;
+      display: none; /* ẩn với người xem thường */
+    }
+
+    .input-container {
+      margin: 20px auto;
+      background: rgba(0,0,0,0.5);
+      padding: 20px;
+      border-radius: 20px;
+      display: inline-block;
+    }
+
+    input {
+      padding: 10px;
+      margin: 5px;
+      border-radius: 15px;
+      border: none;
+      width: 220px;
+      outline: none;
+      font-size: 14px;
+    }
+
+    #addBtn {
+      padding: 10px 20px;
+      background: linear-gradient(135deg, #ff0080, #7928ca);
+      color: white;
+      border: none;
+      border-radius: 20px;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.3s;
+    }
+    #addBtn:hover {
+      transform: scale(1.05);
+      box-shadow: 0px 6px 14px rgba(0,0,0,0.4);
+    }
+
+    #buttonsArea {
+      margin-top: 30px;
+    }
+
+    #adminArea {
+      display: none; /* ẩn mặc định */
+    }
+  </style>
+</head>
+<body>
+  <h1>🌈 Link của mình 🌈</h1>
+
+  <!-- Khu nút link (mọi người đều thấy) -->
+  <div id="buttonsArea"></div>
+
+  <!-- Khu admin (chỉ hiện nếu nhập đúng mật khẩu) -->
+  <div id="adminArea">
+    <div class="input-container">
+      <input type="text" id="linkName" placeholder="Tên nút (VD: Google)">
+      <input type="text" id="linkURL" placeholder="Link (VD: https://google.com)">
+      <button id="addBtn">Thêm</button>
+    </div>
+  </div>
+
+  <script>
+    const addBtn = document.getElementById("addBtn");
+    const linkNameInput = document.getElementById("linkName");
+    const linkURLInput = document.getElementById("linkURL");
+    const buttonsArea = document.getElementById("buttonsArea");
+    const adminArea = document.getElementById("adminArea");
+
+    // 🔑 đổi mật khẩu ở đây
+    const ADMIN_PASSWORD = "23042010"; 
+
+    let isAdmin = false;
+
+    // kiểm tra mật khẩu
+    const entered = prompt("🔒 Nhập mật khẩu quản lý (nếu chỉ xem thì bấm Cancel):");
+    if (entered === ADMIN_PASSWORD) {
+      adminArea.style.display = "block"; 
+      isAdmin = true;
+    }
+
+    // danh sách link mặc định
+    let links = JSON.parse(localStorage.getItem("links")) || [
+      { name: "Google", url: "https://google.com" },
+      { name: "YouTube", url: "https://youtube.com" }
+    ];
+
+    // render các nút
+    function renderLinks() {
+      buttonsArea.innerHTML = "";
+      links.forEach((link, index) => {
+        const wrapper = document.createElement("div");
+        wrapper.style.display = "inline-block";
+        wrapper.style.position = "relative";
+
+        const a = document.createElement("a");
+        a.className = "btn";
+        a.href = link.url;
+        a.target = "_blank";
+        a.textContent = link.name;
+
+        const del = document.createElement("button");
+        del.className = "delete-btn";
+        del.textContent = "×";
+
+        if (isAdmin) {
+          del.style.display = "block"; // chỉ admin mới thấy nút xóa
+          del.onclick = () => {
+            links.splice(index, 1);
+            localStorage.setItem("links", JSON.stringify(links));
+            renderLinks();
+          };
+        }
+
+        wrapper.appendChild(a);
+        wrapper.appendChild(del);
+        buttonsArea.appendChild(wrapper);
+      });
+    }
+
+    renderLinks();
+
+    // thêm link mới
+    addBtn.addEventListener("click", () => {
+      const name = linkNameInput.value.trim();
+      const url = linkURLInput.value.trim();
+
+      if (name && url) {
+        links.push({ name, url });
+        localStorage.setItem("links", JSON.stringify(links));
+        renderLinks();
+
+        linkNameInput.value = "";
+        linkURLInput.value = "";
+      } else {
+        alert("⚠️ Nhập đầy đủ tên và link!");
+      }
+    });
+  </script>
+</body>
+</html>
